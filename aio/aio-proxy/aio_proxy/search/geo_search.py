@@ -1,21 +1,18 @@
-from aio_proxy.search.execute_search import sort_and_execute_search
 from aio_proxy.search.filters.term_filters import filter_term_list_search_unite_legale
 from elasticsearch_dsl import Q
 
 
-def geo_search(index, search_params):
-    search_client = index.search()
-
+def geo_search(es_search_builder):
     # Always apply this filter in geo search to prevent displaying non-diffusible
     # data
-    search_client = search_client.filter(
+    es_search_builder.es_search_client = es_search_builder.es_search_client.filter(
         "term", **{"statut_diffusion_unite_legale": "O"}
     )
 
     # Use filters to reduce search results
-    search_client = filter_term_list_search_unite_legale(
-        search_client,
-        search_params,
+    es_search_builder.es_search_client = filter_term_list_search_unite_legale(
+        es_search_builder.es_search_client,
+        es_search_builder.search_params,
         filters_to_include=[
             "activite_principale_unite_legale",
             "section_activite_principale",
@@ -28,29 +25,27 @@ def geo_search(index, search_params):
                 "bool": {
                     "filter": {
                         "geo_distance": {
-                            "distance": f"{search_params.radius}km",
+                            "distance": f"{es_search_builder.search_params.radius}km",
                             "etablissements.coordonnees": {
-                                "lat": search_params.lat,
-                                "lon": search_params.lon,
+                                "lat": es_search_builder.search_params.lat,
+                                "lon": es_search_builder.search_params.lon,
                             },
                         },
                     }
                 }
             },
             "inner_hits": {
-                "size": search_params.matching_size,
+                "size": es_search_builder.search_params.matching_size,
             },
         }
     }
-    search_client = search_client.query(Q(geo_query))
+    es_search_builder.es_search_client = es_search_builder.es_search_client.query(
+        Q(geo_query)
+    )
 
     # By default, exclude etablissements list from response
-    include_etablissements = search_params.inclure_etablissements
-    if not include_etablissements:
-        search_client = search_client.source(excludes=["etablissements"])
-    # By default, exclude etablissements list from response
-    return sort_and_execute_search(
-        search=search_client,
-        search_params=search_params,
-        is_text_search=True,
-    )
+    if not es_search_builder.search_params.inclure_etablissements:
+        es_search_builder.es_search_client = es_search_builder.es_search_client.source(
+            excludes=["etablissements"]
+        )
+    es_search_builder.is_text_search = True
