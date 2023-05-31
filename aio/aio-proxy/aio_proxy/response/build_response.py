@@ -5,7 +5,6 @@ from collections.abc import Callable
 from aio_proxy.decorators.http_exception import http_exception_handler
 from aio_proxy.response.format_response import format_response
 from aio_proxy.response.format_search_results import format_search_results
-from aio_proxy.search.es_index import ElasticsearchSireneIndex
 from aio_proxy.search.es_search_runner import ElasticSearchRunner
 from aiohttp import web
 from sentry_sdk import capture_exception, push_scope
@@ -22,16 +21,14 @@ def api_response(
     Args:
         request: HTTP request.
         extract_function (Callable): function used to extract parameters.
-        search_type (Callable): type of search (text or geo).
+        search_type: type of search (text or geo).
     Returns:
         response in json format (results, total_results, page, per_page,
         total_pages)
     """
     try:
         search_params = extract_function(request)
-        es_search_results = ElasticSearchRunner(
-            ElasticsearchSireneIndex, search_params, search_type
-        )
+        es_search_results = ElasticSearchRunner(search_params, search_type)
         total_results = es_search_results.total_results
         results = es_search_results.es_search_results
         execution_time = es_search_results.execution_time

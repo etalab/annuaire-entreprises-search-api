@@ -2,8 +2,8 @@ import json
 import logging
 from collections.abc import Callable
 
-from aio_proxy.response.cache.redis import RedisClient
 from aio_proxy.response.helpers import hash_string
+from aio_proxy.search.cache.redis import RedisClient
 
 
 def build_key(key):

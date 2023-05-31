@@ -1,9 +1,10 @@
 import logging
 from datetime import timedelta
 
-from aio_proxy.response.cache.cache import cache_strategy
-from aio_proxy.search.geo_search import geo_search
-from aio_proxy.search.text_search import text_search
+from aio_proxy.search.cache.cache import cache_strategy
+from aio_proxy.search.es_index import ElasticsearchSireneIndex
+from aio_proxy.search.geo_search import geo_search_builder
+from aio_proxy.search.text_search import text_search_builder
 
 TIME_TO_LIVE = timedelta(days=31)
 MIN_EXECUTION_TIME = 400
@@ -11,8 +12,8 @@ MAX_TOTAL_RESULTS = 10000
 
 
 class ElasticSearchRunner:
-    def __init__(self, es_index, search_params, search_type="text"):
-        self.es_search_client = es_index.search()
+    def __init__(self, search_params, search_type="text"):
+        self.es_search_client = ElasticsearchSireneIndex.search()
         self.search_type = search_type
         self.search_params = search_params
         self.is_text_search = False
@@ -22,10 +23,10 @@ class ElasticSearchRunner:
         self.run()
 
     def build_es_search_text_query(self):
-        text_search(self)
+        text_search_builder(self)
 
     def build_es_search_geo_query(self):
-        geo_search(self)
+        geo_search_builder(self)
 
     def sort_es_search_query(self):
         # Sorting is very heavy on performance if there are no

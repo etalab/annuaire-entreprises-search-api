@@ -16,4 +16,3 @@ class ElasticsearchSireneIndex(Document):
 
     class Index:
         name = f"siren-{CURRENT_COLOR}"
-        settings = {"number_of_shards": 1, "number_of_replicas": 0}
