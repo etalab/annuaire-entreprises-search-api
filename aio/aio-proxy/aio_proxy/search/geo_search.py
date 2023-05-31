@@ -2,7 +2,7 @@ from aio_proxy.search.filters.term_filters import filter_term_list_search_unite_
 from elasticsearch_dsl import Q
 
 
-def geo_search(es_search_builder):
+def geo_search_builder(es_search_builder):
     # Always apply this filter in geo search to prevent displaying non-diffusible
     # data
     es_search_builder.es_search_client = es_search_builder.es_search_client.filter(
