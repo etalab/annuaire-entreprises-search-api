@@ -45,12 +45,14 @@ class ElasticSearchRunner:
                 {"nombre_etablissements_ouverts": {"order": "desc"}},
             )
 
-    def execute_and_format_es_search(self):
+    def page_through_results(self, search_client):
         offset = self.search_params.page
-        page_size = self.search_params.per_page
-        es_search_client_with_aggr = self.es_search_client
+        size = self.search_params.per_page
+        return search_client[offset : (offset + size)]
 
-        self.es_search_client = self.es_search_client[offset : (offset + page_size)]
+    def execute_and_format_es_search(self):
+        es_search_client_with_aggr = self.es_search_client
+        self.es_search_client = self.page_through_results(self.es_search_client)
         es_response = self.es_search_client.execute()
         self.total_results = es_response.hits.total.value
         self.execution_time = es_response.took
@@ -63,9 +65,9 @@ class ElasticSearchRunner:
             es_search_client_with_aggr.aggs.metric(
                 "by_cluster", "cardinality", field="siren"
             )
-            es_search_client_with_aggr = es_search_client_with_aggr[
-                offset : (offset + page_size)
-            ]
+            es_search_client_with_aggr = self.page_through_results(
+                es_search_client_with_aggr
+            )
             es_search_client_with_aggr = es_search_client_with_aggr.execute()
             self.total_results = (
                 es_search_client_with_aggr.aggregations.by_cluster.value
@@ -117,9 +119,7 @@ class ElasticSearchRunner:
             return es_results_to_cache
 
         # To make sure the page and page size are part of the cache key
-        offset = self.search_params.page
-        page_size = self.search_params.per_page
-        cache_key = self.es_search_client[offset : (offset + page_size)]
+        cache_key = self.page_through_results(self.es_search_client)
 
         cached_search_results = cache_strategy(
             cache_key,
