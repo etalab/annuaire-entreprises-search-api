@@ -38,7 +38,7 @@ from aio_proxy.request.parsers.tranche_effectif import validate_tranche_effectif
 from aio_proxy.request.parsers.type_personne import validate_type_personne
 from aio_proxy.request.parsers.uai import validate_id_uai
 from aio_proxy.request.search_params_model import SearchParams
-from aio_proxy.utils import str_to_list
+from aio_proxy.utils.utils import str_to_list
 
 
 class SearchParamsBuilder:

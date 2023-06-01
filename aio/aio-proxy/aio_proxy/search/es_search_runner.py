@@ -1,10 +1,10 @@
 import logging
 from datetime import timedelta
 
-from aio_proxy.search.cache.cache import cache_strategy
 from aio_proxy.search.es_index import ElasticsearchSireneIndex
 from aio_proxy.search.geo_search import build_es_search_geo_query
 from aio_proxy.search.text_search import build_es_search_text_query
+from aio_proxy.utils.cache import cache_strategy
 
 TIME_TO_LIVE = timedelta(days=31)
 MIN_EXECUTION_TIME = 400
