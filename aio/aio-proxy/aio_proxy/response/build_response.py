@@ -1,8 +1,8 @@
 import json
 import logging
-from collections.abc import Callable
 
 from aio_proxy.decorators.http_exception import http_exception_handler
+from aio_proxy.request.search_params_builder import SearchParamsBuilder
 from aio_proxy.response.format_response import format_response
 from aio_proxy.response.format_search_results import format_search_results
 from aio_proxy.search.es_search_runner import ElasticSearchRunner
@@ -13,21 +13,19 @@ from sentry_sdk import capture_exception, push_scope
 @http_exception_handler
 def api_response(
     request,
-    extract_function: Callable,
-    search_type: str,
+    search_type,
 ) -> dict[str, int]:
     """Create and format API response.
 
     Args:
         request: HTTP request.
-        extract_function (Callable): function used to extract parameters.
-        search_type: type of search (text or geo).
+        search_type: type of search.
     Returns:
         response in json format (results, total_results, page, per_page,
         total_pages)
     """
     try:
-        search_params = extract_function(request)
+        search_params = SearchParamsBuilder.extract_params(request, search_type)
         es_search_results = ElasticSearchRunner(search_params, search_type)
         total_results = es_search_results.total_results
         results = es_search_results.es_search_results

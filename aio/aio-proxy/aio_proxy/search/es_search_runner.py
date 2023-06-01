@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from aio_proxy.request.search_type import SearchType
 from aio_proxy.search.es_index import ElasticsearchSireneIndex
 from aio_proxy.search.geo_search import build_es_search_geo_query
 from aio_proxy.search.text_search import build_es_search_text_query
@@ -12,7 +13,7 @@ MAX_TOTAL_RESULTS = 10000
 
 
 class ElasticSearchRunner:
-    def __init__(self, search_params, search_type="text"):
+    def __init__(self, search_params, search_type):
         self.es_search_client = ElasticsearchSireneIndex.search()
         self.search_type = search_type
         self.search_params = search_params
@@ -137,8 +138,8 @@ class ElasticSearchRunner:
             return False
 
     def run(self):
-        if self.search_type == "text":
+        if self.search_type == SearchType.TEXT:
             build_es_search_text_query(self)
-        elif self.search_type == "geo":
+        elif self.search_type == SearchType.GEO:
             build_es_search_geo_query(self)
         self.sort_and_execute_es_search_query()
