@@ -38,6 +38,7 @@ from aio_proxy.request.parsers.tranche_effectif import validate_tranche_effectif
 from aio_proxy.request.parsers.type_personne import validate_type_personne
 from aio_proxy.request.parsers.uai import validate_id_uai
 from aio_proxy.request.search_params_model import SearchParams
+from aio_proxy.request.search_type import SearchType
 from aio_proxy.utils.utils import str_to_list
 
 
@@ -190,3 +191,12 @@ class SearchParamsBuilder:
         # Prevent performance issues by refusing query terms less than 3 characters
         # unless another param is provided
         check_short_terms_and_no_param(params)
+
+    @staticmethod
+    def extract_params(request, search_type):
+        if search_type == SearchType.TEXT:
+            return SearchParamsBuilder.get_text_search_params(request)
+        elif search_type == SearchType.GEO:
+            return SearchParamsBuilder.get_geo_search_params(request)
+        else:
+            raise ValueError("Unknown search type!!!")
