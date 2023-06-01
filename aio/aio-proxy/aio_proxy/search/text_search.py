@@ -24,7 +24,7 @@ from aio_proxy.search.queries.text import build_text_query
 from elasticsearch_dsl import Q
 
 
-def text_search_builder(es_search_builder):
+def build_es_search_text_query(es_search_builder):
     query_terms = es_search_builder.search_params.terms
     # Filter by siren/siret first (if query is a `siren` or 'siret' number),
     # and return search results directly without text search.
