@@ -4,6 +4,11 @@ from datetime import timedelta
 from aio_proxy.request.search_type import SearchType
 from aio_proxy.search.es_index import ElasticsearchSireneIndex
 from aio_proxy.search.geo_search import build_es_search_geo_query
+from aio_proxy.search.helpers.helpers import (
+    execute_and_agg_total_results_by_siren,
+    extract_ul_and_etab_from_es_response,
+    page_through_results,
+)
 from aio_proxy.search.text_search import build_es_search_text_query
 from aio_proxy.utils.cache import cache_strategy
 
@@ -40,14 +45,8 @@ class ElasticSearchRunner:
                 {"nombre_etablissements_ouverts": {"order": "desc"}},
             )
 
-    def page_through_results(self, search_client):
-        offset = self.search_params.page
-        size = self.search_params.per_page
-        return search_client[offset : (offset + size)]
-
     def execute_and_format_es_search(self):
-        es_search_client_with_aggr = self.es_search_client
-        self.es_search_client = self.page_through_results(self.es_search_client)
+        self.es_search_client = page_through_results(self)
         es_response = self.es_search_client.execute()
         self.total_results = es_response.hits.total.value
         self.execution_time = es_response.took
@@ -56,44 +55,21 @@ class ElasticSearchRunner:
         # aggregation on total_results only when total_results is lower than
         # 10 000 results. If total_results is higher than 10 000 results,
         # the aggregation causes timeouts on API. We return by default 10 000 results.
-        if self.total_results < MAX_TOTAL_RESULTS:
-            es_search_client_with_aggr.aggs.metric(
-                "by_cluster", "cardinality", field="siren"
-            )
-            es_search_client_with_aggr = self.page_through_results(
-                es_search_client_with_aggr
-            )
-            es_search_client_with_aggr = es_search_client_with_aggr.execute()
-            self.total_results = (
-                es_search_client_with_aggr.aggregations.by_cluster.value
-            )
-            self.execution_time = es_search_client_with_aggr.took
+        max_results_exceeded = self.total_results >= MAX_TOTAL_RESULTS
+        if not max_results_exceeded:
+            execute_and_agg_total_results_by_siren(self)
 
         self.es_search_results = []
         for matching_unite_legale in es_response.hits:
-            matching_unite_legale_dict = matching_unite_legale.to_dict(
-                skip_empty=False, include_meta=False
+            matching_unite_legale_dict = extract_ul_and_etab_from_es_response(
+                matching_unite_legale
             )
-            # Add meta field to response to retrieve score
-            matching_unite_legale_dict["meta"] = matching_unite_legale.meta.to_dict()
-            # Add inner hits field (etablissements)
-            try:
-                matching_etablissements = (
-                    matching_unite_legale.meta.inner_hits.etablissements.hits
-                )
-                matching_unite_legale_dict["matching_etablissements"] = []
-                for matching_etablissement in matching_etablissements:
-                    matching_unite_legale_dict["matching_etablissements"].append(
-                        matching_etablissement.to_dict()
-                    )
-            except Exception:
-                matching_unite_legale_dict["matching_etablissements"] = []
-
             self.es_search_results.append(matching_unite_legale_dict)
 
     def sort_and_execute_es_search_query(self):
-        self.es_search_client = self.es_search_client.extra(track_scores=True)
-        self.es_search_client = self.es_search_client.extra(explain=True)
+        self.es_search_client = self.es_search_client.extra(
+            track_scores=True, explain=True
+        )
         # Collapse is used to aggregate the results by siren. It is the consequence of
         # separating large documents into smaller ones
         self.es_search_client = self.es_search_client.update_from_dict(
@@ -114,7 +90,7 @@ class ElasticSearchRunner:
             return es_results_to_cache
 
         # To make sure the page and page size are part of the cache key
-        cache_key = self.page_through_results(self.es_search_client)
+        cache_key = page_through_results(self)
 
         cached_search_results = cache_strategy(
             cache_key,
