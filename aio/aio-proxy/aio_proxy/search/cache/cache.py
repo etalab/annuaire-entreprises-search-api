@@ -25,8 +25,8 @@ def set_cache_value(cache_client, key, value, time_to_live):
 
 def cache_strategy(
     key,
-    get_es_search_response: Callable,
-    should_cache_search_response: Callable,
+    get_value: Callable,
+    should_cache_value: Callable,
     time_to_live,
 ):
     try:
@@ -37,8 +37,8 @@ def cache_strategy(
         cached_value = redis_client_cache.get(request_cache_key)
         if cached_value:
             return json.loads(cached_value)
-        value_to_cache = get_es_search_response()
-        should_cache = should_cache_search_response()
+        value_to_cache = get_value()
+        should_cache = should_cache_value()
         if should_cache:
             set_cache_value(
                 redis_client_cache, request_cache_key, value_to_cache, time_to_live
@@ -46,4 +46,4 @@ def cache_strategy(
         return value_to_cache
     except Exception as error:
         logging.info(f"Error while trying to cache: {error}")
-        return get_es_search_response()
+        return get_value()
