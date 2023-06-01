@@ -16,7 +16,7 @@ class ElasticSearchRunner:
         self.es_search_client = ElasticsearchSireneIndex.search()
         self.search_type = search_type
         self.search_params = search_params
-        self.is_text_search = False
+        self.has_full_text_query = False
         self.es_search_results = None
         self.total_results = None
         self.execution_time = None
@@ -27,7 +27,7 @@ class ElasticSearchRunner:
         # search terms (only filters). As there is no search terms, we can
         # exclude this sorting because score is the same for all results
         # documents. Beware, nom and prenoms are search fields.
-        if self.is_text_search:
+        if self.has_full_text_query:
             self.es_search_client = self.es_search_client.sort(
                 {"_score": {"order": "desc"}},
                 {"etat_administratif_unite_legale": {"order": "asc"}},

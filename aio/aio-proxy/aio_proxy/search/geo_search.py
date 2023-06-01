@@ -48,4 +48,4 @@ def build_es_search_geo_query(es_search_builder):
         es_search_builder.es_search_client = es_search_builder.es_search_client.source(
             excludes=["etablissements"]
         )
-    es_search_builder.is_text_search = True
+    es_search_builder.has_full_text_query = True

@@ -252,7 +252,7 @@ def build_es_search_text_query(es_search_builder):
             "prenoms_personne",
         ]:
             if getattr(es_search_builder.search_params, item):
-                es_search_builder.is_text_search = True
+                es_search_builder.has_full_text_query = True
 
         # By default, exclude etablissements list from response
         if not es_search_builder.search_params.inclure_etablissements:
