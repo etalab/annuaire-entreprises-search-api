@@ -1,3 +1,5 @@
+import logging
+
 from aio_proxy.search.es_index import ElasticsearchSireneIndex
 
 
@@ -36,17 +38,30 @@ class ElasticSearchBuilder:
     def page_through_results(self):
         size = self.search_params.per_page
         offset = self.search_params.page * size
-        return self.es_search_client[offset : (offset + size)]
+        self.es_search_client = self.es_search_client[offset : (offset + size)]
+        return self.es_search_client
 
     def execute_and_agg_total_results_by_siren(self):
+        """
         self.es_search_client.aggs.metric("by_cluster", "cardinality", field="siren")
         self.page_through_results()
-        self.es_search_client.execute()
-        self.total_results = self.es_search_client.aggregations.by_cluster.value
-        self.execution_time = self.es_search_client.took
+        es_response = self.es_search_client.execute()
+        self.total_results = es_response.aggregations.by_cluster.value
+        self.execution_time = es_response.took
+        """
+
+        es_client = self.es_search_client
+        logging.info(f"cliiiiiiiiiient{es_client}")
+        es_client.aggs.metric("by_cluster", "cardinality", field="siren")
+        logging.info(f"cliiiiiiiiiient aaaaafter{es_client.to_dict()}")
+        es_response = es_client.execute()
+        logging.info(f"******* reponse : {es_response}")
+        logging.info(f"*******{es_response.aggregations}")
+        self.total_results = es_response.aggregations.by_cluster.value
+        self.execution_time = es_response.took
 
     def execute_es(self):
-        self.es_search_client = self.page_through_results
+        self.es_search_client = self.page_through_results()
         self.es_response = self.es_search_client.execute()
         self.total_results = self.es_response.hits.total.value
         self.execution_time = self.es_response.took

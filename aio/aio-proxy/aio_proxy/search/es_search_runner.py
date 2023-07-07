@@ -16,7 +16,7 @@ MAX_TOTAL_RESULTS = 10000
 class ElasticSearchRunner:
     def __init__(self, search_params, search_type):
         self.es_search_builder = ElasticSearchBuilder(search_params)
-        self.es_search_client = self.es_search_builder.es_search_client
+        # self.es_search_client = self.es_search_builder.es_search_client
         self.search_type = search_type
         self.has_full_text_query = False
         self.es_search_results = None
@@ -46,6 +46,10 @@ class ElasticSearchRunner:
                 matching_unite_legale
             )
             self.es_search_results.append(matching_unite_legale_dict)
+        self.total_results = self.es_search_builder.total_results
+        self.execution_time = self.es_search_builder.execution_time
+        logging.info(f"/////// total results{self.total_results}")
+        logging.info(f"/////// total execution_time{self.execution_time}")
 
     def sort_and_execute_es_search_query(self):
         self.es_search_builder.track_scores()
