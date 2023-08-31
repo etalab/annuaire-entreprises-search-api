@@ -1,13 +1,13 @@
-from aio_proxy.response.helpers import get_value
+from aio_proxy.response.unite_legale_model import UniteLegaleFinances
 
 
 def format_bilan(source_bilan):
     if source_bilan:
         formatted_bilan = {
-            get_value(source_bilan, "annee_cloture_exercice"): {
-                "ca": get_value(source_bilan, "ca"),
-                "resultat_net": get_value(source_bilan, "resultat_net"),
-            }
+            source_bilan.get("annee_cloture_exercice"): UniteLegaleFinances(
+                ca=source_bilan.get("ca"),
+                resultat_net=source_bilan.get("resultat_net"),
+            )
         }
         return formatted_bilan
-    return {}
+    return None

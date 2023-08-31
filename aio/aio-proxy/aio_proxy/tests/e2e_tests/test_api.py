@@ -135,6 +135,21 @@ def test_siren_search(api_response_tester):
     api_response_tester.test_field_value(path, "siren", "130025265")
 
 
+def test_siret_search(api_response_tester):
+    """
+    test if valid `siret` search returns results
+    """
+    path = "search?q=88087814500015"
+    response = api_response_tester.get_api_response(path)
+    api_response_tester.assert_api_response_code_200(path)
+    api_response_tester.test_field_value(path, "siren", "880878145")
+    assert response.json()["total_results"] == 1
+    assert (
+        response.json()["results"][0]["matching_etablissements"][0]["siret"]
+        == "88087814500015"
+    )
+
+
 def test_page_number(api_response_tester):
     """
     test if giving a page number higher than 1000 returns a value error
@@ -386,3 +401,15 @@ def test_region_filter(api_response_tester):
         "region"
     ]
     assert region_etablissement == "76"
+
+
+def test_non_diffusibilite(api_response_tester):
+    path = "search?q=300210820&include_admin=etablissements"
+    response = api_response_tester.get_api_response(path)
+    assert response.json()["results"][0]["nom_complet"] == "[NON-DIFFUSIBLE]"
+    assert response.json()["results"][0]["siege"]["code_postal"] == "[NON-DIFFUSIBLE]"
+    for etablissement in response.json()["results"][0]["etablissements"]:
+        assert etablissement["code_postal"] == "[NON-DIFFUSIBLE]"
+    for dirigeant in response.json()["results"][0]["dirigeants"]:
+        assert dirigeant["prenoms"] == "[NON-DIFFUSIBLE]"
+        assert dirigeant["nom"] == "[NON-DIFFUSIBLE]"

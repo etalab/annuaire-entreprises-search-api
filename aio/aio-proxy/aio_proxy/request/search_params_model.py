@@ -55,3 +55,4 @@ class SearchParams:
     include: list = None
     include_admin: list = None
     inclure_etablissements: bool = None
+    include_association: bool = False

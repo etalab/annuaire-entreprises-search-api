@@ -176,6 +176,9 @@ class SearchParamsBuilder:
             inclure_etablissements=should_include_etablissements(
                 str_to_list(clean_parameter(request, param="include_admin"))
             ),
+            include_association=parse_and_validate_bool_field(
+                request, param="include_association"
+            ),
         )
         SearchParamsBuilder.check_and_validate_params(request, params)
         return params
@@ -207,6 +210,9 @@ class SearchParamsBuilder:
             ),
             inclure_etablissements=should_include_etablissements(
                 str_to_list(clean_parameter(request, param="include_admin"))
+            ),
+            include_association=parse_and_validate_bool_field(
+                request, param="include_association"
             ),
         )
         return params

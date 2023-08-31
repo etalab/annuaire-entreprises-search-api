@@ -8,6 +8,6 @@ fixable = ["A", "B", "C", "D", "E", "F", "I"]
 unfixable = []
 
 [tool.ruff.pylint]
-max-args = 10
+max-args = 20
 max-branches = 20
 max-statements = 60

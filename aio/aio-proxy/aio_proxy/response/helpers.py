@@ -30,32 +30,29 @@ def get_value(dict, key, default=None):
     return value
 
 
-def format_nom_complet(
-    nom_complet,
-    sigle=None,
-    denomination_usuelle_1=None,
-    denomination_usuelle_2=None,
-    denomination_usuelle_3=None,
-):
-    """Add `denomination usuelle` fields and `sigle` to `nom_complet`."""
-    all_denomination_usuelle = ""
-    for item in [
-        denomination_usuelle_1,
-        denomination_usuelle_2,
-        denomination_usuelle_3,
-    ]:
-        if item:
-            all_denomination_usuelle += f"{item} "
-    if all_denomination_usuelle:
-        nom_complet = f"{nom_complet} ({all_denomination_usuelle.strip()})"
-    if sigle:
-        nom_complet = f"{nom_complet} ({sigle})"
-    if nom_complet:
-        return nom_complet.upper()
-    # if nom_complet is null
-    return None
-
-
 def hash_string(string: str):
     hashed_string = sha256(string.encode("utf-8")).hexdigest()
     return hashed_string
+
+
+def create_fields_to_include(search_params):
+    if search_params.minimal:
+        if search_params.include is None:
+            return []
+        else:
+            return search_params.include
+    else:
+        return [
+            "SIEGE",
+            "FINANCES",
+            "COMPLEMENTS",
+            "DIRIGEANTS",
+            "MATCHING_ETABLISSEMENTS",
+        ]
+
+
+def create_admin_fields_to_include(search_params):
+    if search_params.include_admin is None:
+        return []
+    else:
+        return search_params.include_admin

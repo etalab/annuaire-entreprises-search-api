@@ -28,11 +28,20 @@ def build_text_query(terms: str, matching_size: int):
                                 "unite_legale.identifiant_association_unite_legale": {
                                     "query": terms,
                                     "boost": 50,
-                                    "_name": "exact match identifiant association",
+                                    "_name": "exact match id association sirene",
                                 }
                             }
                         },
                         "field_value_factor": mid_etab_ouverts_multiplier,
+                    }
+                },
+                {
+                    "match_phrase": {
+                        "association.identifiant_association": {
+                            "query": terms,
+                            "boost": 50,
+                            "_name": "exact match id association rna",
+                        }
                     }
                 },
                 {

@@ -9,7 +9,7 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from aio_proxy.request.search_type import SearchType
-from aio_proxy.response.build_response import api_response
+from aio_proxy.response.build_api_response import build_api_response
 
 load_dotenv()
 
@@ -48,7 +48,7 @@ routes = web.RouteTableDef()
 
 @routes.get("/search")
 async def search_text_endpoint(request):
-    return api_response(
+    return build_api_response(
         request,
         search_type=SearchType.TEXT,
     )
@@ -56,7 +56,7 @@ async def search_text_endpoint(request):
 
 @routes.get("/near_point")
 async def near_point_endpoint(request):
-    return api_response(
+    return build_api_response(
         request,
         search_type=SearchType.GEO,
     )
