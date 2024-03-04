@@ -1,0 +1,40 @@
+name: Deploy cluster
+
+on:
+  push:
+    branches:
+      - ci-pipeline
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    name: Deploy on staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - environment: staging-01
+            host: SSH_HOST_STAGING_01
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ./deploy.key
+          sudo chmod 600 ./deploy.key
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_MACHINE_USER_PRIVATE_KEY}}
+          SSH_HOST: ${{ secrets[matrix.host] }}
+
+      - name: Deploy to staging
+        run: ssh -i ./deploy.key www-data@$SSH_HOST 'python3 /opt/scripts/app-deploy-release/deploy.py /opt/git/releases/annuaire-entreprises-search-api https://github.com/etalab/annuaire-entreprises-search-api.git api --version github-action-deploy --versions_to_keep=5 | tee --append /var/log/deploy_annuaire-entreprises-search-api'
+        env:
+          SSH_HOST: ${{ secrets[matrix.host] }}
